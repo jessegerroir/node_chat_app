@@ -12,9 +12,23 @@ const $locationButton = document.querySelector('#send-location');
 
 const $messages = document.querySelector('#messages');
 
+const $roomNameDiv = document.querySelector('#room-name-div');
+
 // Templates
 const messageTemplate = document.querySelector('#message-template').innerHTML;
 const messageLocationTemplate = document.querySelector('#message-template-location').innerHTML;
+const roomNameTemplate = document.querySelector('#room-name').innerHTML;
+
+
+// Options
+const { username, room } = Qs.parse(location.search, { ignoreQueryPrefix: true });
+
+// create room name
+const html = Mustache.render(roomNameTemplate, {
+    roomName: room
+});
+
+$roomNameDiv.insertAdjacentHTML('afterbegin', html);
 
 socket.on('message', (message) => {
     // complie template with data we want to render inside of it
@@ -28,9 +42,10 @@ socket.on('message', (message) => {
 });
 
 socket.on('locationMessage', (locationMessage) => {
-    console.log(locationMessage);
+    console.log(locationMessage.url);
     const html = Mustache.render(messageLocationTemplate, {
-        locationMessage,
+        locationMessage: locationMessage.url,
+        createdAt: moment(locationMessage.createdAt).format('h:mm a')
     })
     // insert rendered html into page
     $messages.insertAdjacentHTML('beforeend', html);
@@ -84,3 +99,5 @@ $locationButton.addEventListener('click', () => {
     })
 
 })
+
+socket.emit('join', { username, room });

@@ -4,7 +4,7 @@ const express = require('express');
 const socketio = require('socket.io');
 const Filter = require('bad-words');
 
-const { generateMessage } = require('./utils/messages');
+const { generateMessage, generateLocationMessage } = require('./utils/messages');
 
 // Create the server
 const app = express();
@@ -26,11 +26,20 @@ server.listen(port, () => {
 
 
 io.on('connection', (socket) => {
-    // emit the welcome message 
-    socket.emit('message', generateMessage('Welcome!'));
 
-    // emit message to everyone but this current socket
-    socket.broadcast.emit('message', generateMessage('A new user has joined'));
+    // join specific room
+    socket.on('join', ({ username, room}) => {
+        
+        // join specific room
+        socket.join(room);
+
+        // emit the welcome message 
+        socket.emit('message', generateMessage('Welcome!'));
+
+        // emit message to everyone but this current socket
+        socket.broadcast.to(room).emit('message', generateMessage(`${username} has joined!`));
+
+    });
 
     // create event listener to listen to the client that just connected
     socket.on('messageSubmit', (message, callback) => {
@@ -41,13 +50,13 @@ io.on('connection', (socket) => {
         }
         
         // emit to everyone
-        io.emit('message', generateMessage(message));
+        io.to('').emit('message', generateMessage(message));
         // send acknowledgement back to client
         callback();
     });
 
     socket.on('sendLocation', (coords, callback) => {
-        io.emit('locationMessage', `https//www.google.com/maps?q=${coords.latitude},${coords.longitude}`)
+        io.emit('locationMessage', generateLocationMessage(`https//www.google.com/maps?q=${coords.latitude},${coords.longitude}`))
         callback('Location shared!');
     })
 
