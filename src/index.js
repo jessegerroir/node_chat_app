@@ -3,6 +3,7 @@ const http = require('http');
 const express = require('express');
 const socketio = require('socket.io');
 const Filter = require('bad-words');
+const config = require('./../config/config');
 
 const { generateMessage, generateLocationMessage } = require('./utils/messages');
 
@@ -14,7 +15,7 @@ const server = http.createServer(app);
 const io = socketio(server)
 
 // Set the port for the server
-const port = process.env.PORT || 3000;
+const port = config.port;
 // creat the path to what the server will serve up
 const publicDirectoryPath = path.join(__dirname, '../public');
 // tell the server to serve up the path
